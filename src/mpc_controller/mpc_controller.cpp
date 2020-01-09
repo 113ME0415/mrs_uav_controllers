@@ -645,12 +645,21 @@ const mrs_msgs::AttitudeCommand::ConstPtr MpcController::update(const mrs_msgs::
   if (reference->use_acceleration) {
     Ra << reference->acceleration.x + cvx_x_u, reference->acceleration.y + cvx_y_u, reference->acceleration.z + cvx_z_u;
   } else {
+
+    ROS_INFO_STREAM("[MpcController]: cvx_x_u: " << cvx_x_u);
+    ROS_INFO_STREAM("[MpcController]: cvx_y_u: " << cvx_y_u);
+    ROS_INFO_STREAM("[MpcController]: cvx_z_u: " << cvx_z_u);
+
     Ra << cvx_x_u, cvx_y_u, cvx_z_u;
   }
+
+  ROS_INFO_STREAM("[MpcController]: Ra: " << Ra);
 
   double total_mass = uav_mass_ + uav_mass_difference;
 
   Eigen::Vector3d feed_forward = total_mass * (Eigen::Vector3d(0, 0, g_) + Ra);
+
+  ROS_INFO_STREAM("[MpcController]: total_mass: " << total_mass);
 
   Eigen::Vector3d integral_feedback;
 
@@ -660,7 +669,13 @@ const mrs_msgs::AttitudeCommand::ConstPtr MpcController::update(const mrs_msgs::
     integral_feedback << Ib_w[0] + Iw_w[0], Ib_w[1] + Iw_w[1], 0;
   }
 
+  ROS_INFO_STREAM("[MpcController]: ff: " << feed_forward);
+
+  ROS_INFO_STREAM("[MpcController]: integral: " << integral_feedback);
+
   Eigen::Vector3d f = integral_feedback + feed_forward;
+
+  ROS_INFO("[MpcController]: f");
 
   // | ----------- limiting the downwards acceleration ---------- |
   // the downwards force produced by the position and the acceleration feedback should not be larger than the gravity
@@ -686,7 +701,11 @@ const mrs_msgs::AttitudeCommand::ConstPtr MpcController::update(const mrs_msgs::
 
   // | ------------------ limit the tilt angle ------------------ |
 
+  ROS_INFO_STREAM("[MpcController]: f #2: " << f);
+
   Eigen::Vector3d f_norm = f.normalized();
+
+  ROS_INFO_STREAM("[MpcController]: f_norm: " << f_norm);
 
   // calculate the force in the spherical coordinates
   double theta = acos(f_norm[2]);
